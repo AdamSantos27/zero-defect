@@ -1,0 +1,14 @@
+{
+    "products": {
+        "Angelfish": {
+            "id": "FI-SW-01",
+            "price": 16.50,
+            "description": "Large Angelfish"
+        },
+        "Tiger Shark": {
+            "id": "FI-SW-02",
+            "price": 18.50,
+            "description": "Toothless Tiger Shark"
+        }
+    }
+} 

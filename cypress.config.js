@@ -2,7 +2,7 @@ const { defineConfig } = require('cypress')
 
 module.exports = defineConfig({
   e2e: {
-    baseUrl: 'http://38.211.128.218:65500/jpetstore/',
+    baseUrl: 'http://38.211.128.218:65500/jpetstore',
     specPattern: 'cypress/e2e/**/*.cy.js',
     supportFile: 'cypress/support/e2e.js',
     viewportWidth: 1280,
@@ -12,8 +12,11 @@ module.exports = defineConfig({
     video: false,
     screenshotOnRunFailure: true,
     chromeWebSecurity: false,
+    setupNodeEvents(on, config) {
+      return config
+    },
     retries: {
-      runMode: 2,
+      runMode: 1,
       openMode: 0
     }
   },

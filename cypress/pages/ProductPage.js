@@ -25,6 +25,10 @@ class ProductPage {
         cy.wait(2000)
     }
 
+    parsePrice(text) {
+        return parseFloat(text.replace('$', '').trim())
+    }
+
     validateProductInCart(productName, expectedQuantity) {
         // Verificar se o produto está visível
         this.elements.productRow(productName).should('be.visible')
@@ -36,13 +40,13 @@ class ProductPage {
         
         // Verificar se o subtotal está correto
         this.elements.productRow(productName).within(() => {
-            cy.get('td').eq(3).invoke('text').then(text => {
-                const price = parseFloat(text.replace('$', '').trim())
+            cy.get('td').eq(5).invoke('text').then(text => {
+                const price = this.parsePrice(text)
                 expect(price).to.be.a('number').and.not.be.NaN
                 
                 const expectedSubtotal = price * expectedQuantity
-                cy.get('td').eq(4).invoke('text').then(text => {
-                    const subtotal = parseFloat(text.replace('$', '').trim())
+                cy.get('td').eq(6).invoke('text').then(text => {
+                    const subtotal = this.parsePrice(text)
                     expect(subtotal).to.be.a('number').and.not.be.NaN
                     expect(subtotal).to.equal(expectedSubtotal)
                 })
@@ -62,8 +66,8 @@ class ProductPage {
                         const qty = parseInt(quantity)
                         expect(qty).to.be.a('number').and.not.be.NaN
                         
-                        cy.get('td').eq(3).invoke('text').then(text => {
-                            const price = parseFloat(text.replace('$', '').trim())
+                        cy.get('td').eq(5).invoke('text').then(text => {
+                            const price = this.parsePrice(text)
                             expect(price).to.be.a('number').and.not.be.NaN
                             calculatedTotal += price * qty
                         })
@@ -74,7 +78,7 @@ class ProductPage {
             // Validar o total do carrinho
             this.elements.subTotalRow().within(() => {
                 cy.get('td').eq(1).invoke('text').then(text => {
-                    const total = parseFloat(text.replace('$', '').trim())
+                    const total = this.parsePrice(text)
                     expect(total).to.be.a('number').and.not.be.NaN
                     expect(total).to.equal(calculatedTotal)
                 })
@@ -86,7 +90,7 @@ class ProductPage {
         this.elements.cartTable().should('be.visible')
         this.elements.subTotalRow().within(() => {
             cy.get('td').eq(1).invoke('text').then(text => {
-                const total = parseFloat(text.replace('$', '').trim())
+                const total = this.parsePrice(text)
                 expect(total).to.be.a('number').and.not.be.NaN
                 expect(total).to.equal(0)
             })
