@@ -10,6 +10,8 @@
   "license": "ISC",
   "description": "",
   "devDependencies": {
-    "cypress": "^14.3.2"
+    "@bahmutov/cy-api": "^2.2.8",
+    "cypress": "^14.3.2",
+    "cypress-plugin-api": "^2.11.2"
   }
 }
