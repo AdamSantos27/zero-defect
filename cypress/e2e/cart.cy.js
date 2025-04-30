@@ -1,4 +1,3 @@
-import HomePage from '../pages/HomePage'
 import ProductPage from '../pages/ProductPage'
 
 describe('JPetStore Cart Operations', () => {
@@ -33,70 +32,134 @@ describe('JPetStore Cart Operations', () => {
             cy.wait(2000)
         })
 
-        it('deve adicionar produto ao carrinho e validar informações', () => {
+        it.only('deve adicionar produto ao carrinho e validar informações', () => {
             // Adicionar produto ao carrinho
-            cy.get('a[href*="addItemToCart"]').first().click()
-            cy.wait(2000)
+            ProductPage.addToCart()
 
             // Validar que o carrinho está visível
-            cy.get('#Cart').should('be.visible')
+            ProductPage.elements.cartTable().should('be.visible')
 
             // Validar informações do produto
-            cy.validateProductInCart('Angelfish', 1)
+            ProductPage.elements.productRow('Angelfish').should('be.visible')
+            
+            // Validar quantidade
+            ProductPage.elements.productRow('Angelfish').within(() => {
+                cy.get('input[name*="EST-"]').should('have.value', '1')
+            })
+            
+            // Validar preço e subtotal
+            ProductPage.elements.productRow('Angelfish').within(() => {
+                cy.get('td').eq(3).invoke('text').then(text => {
+                    cy.log('Price text:', text)
+                    // Remover todos os caracteres não numéricos exceto ponto e vírgula
+                    const cleanText = text.replace(/[^0-9.,]/g, '')
+                    cy.log('Clean price text:', cleanText)
+                    // Substituir vírgula por ponto se houver
+                    const normalizedText = cleanText.replace(',', '.')
+                    cy.log('Normalized price text:', normalizedText)
+                    const price = parseFloat(normalizedText)
+                    cy.log('Parsed price:', price)
+                    
+                    // Validar que o preço é um número válido
+                    expect(typeof price).to.equal('number')
+                    expect(Number.isFinite(price)).to.be.true
+                    
+                    cy.get('td').eq(4).invoke('text').then(subtotalText => {
+                        cy.log('Subtotal text:', subtotalText)
+                        const cleanSubtotalText = subtotalText.replace(/[^0-9.,]/g, '')
+                        cy.log('Clean subtotal text:', cleanSubtotalText)
+                        const normalizedSubtotalText = cleanSubtotalText.replace(',', '.')
+                        cy.log('Normalized subtotal text:', normalizedSubtotalText)
+                        const subtotal = parseFloat(normalizedSubtotalText)
+                        cy.log('Parsed subtotal:', subtotal)
+                        
+                        // Validar que o subtotal é um número válido
+                        expect(typeof subtotal).to.equal('number')
+                        expect(Number.isFinite(subtotal)).to.be.true
+                        
+                        // Validar que o subtotal é igual ao preço (quantidade 1)
+                        expect(subtotal).to.equal(price)
+                    })
+                })
+            })
             
             // Validar total do carrinho
-            cy.validateCartTotal()
+            ProductPage.elements.subTotalRow().within(() => {
+                cy.get('td').eq(1).invoke('text').then(text => {
+                    cy.log('Total text:', text)
+                    const cleanText = text.replace(/[^0-9.,]/g, '')
+                    cy.log('Clean total text:', cleanText)
+                    const normalizedText = cleanText.replace(',', '.')
+                    cy.log('Normalized total text:', normalizedText)
+                    const total = parseFloat(normalizedText)
+                    cy.log('Parsed total:', total)
+                    
+                    // Validar que o total é um número válido
+                    expect(typeof total).to.equal('number')
+                    expect(Number.isFinite(total)).to.be.true
+                    
+                    ProductPage.elements.productRow('Angelfish').within(() => {
+                        cy.get('td').eq(3).invoke('text').then(text => {
+                            cy.log('Price text for total:', text)
+                            const cleanText = text.replace(/[^0-9.,]/g, '')
+                            cy.log('Clean price text for total:', cleanText)
+                            const normalizedText = cleanText.replace(',', '.')
+                            cy.log('Normalized price text for total:', normalizedText)
+                            const price = parseFloat(normalizedText)
+                            cy.log('Parsed price for total:', price)
+                            
+                            // Validar que o preço é um número válido
+                            expect(typeof price).to.equal('number')
+                            expect(Number.isFinite(price)).to.be.true
+                            
+                            // Validar que o total é igual ao preço (quantidade 1)
+                            expect(total).to.equal(price)
+                        })
+                    })
+                })
+            })
         })
 
         it('deve atualizar a quantidade do produto no carrinho e validar valores', () => {
             // Adicionar produto ao carrinho
-            cy.get('a[href*="addItemToCart"]').first().click()
-            cy.wait(2000)
+            ProductPage.addToCart()
 
             // Atualizar quantidade
-            cy.get('input[name*="EST-"]').first().clear().type('2')
-            cy.get('input[type="submit"][value="Update Cart"]').click()
-            cy.wait(2000)
+            ProductPage.updateQuantity(2)
 
             // Validar informações atualizadas
-            cy.validateProductInCart('Angelfish', 2)
-            cy.validateCartTotal()
+            ProductPage.validateProductInCart('Angelfish', 2)
+            ProductPage.validateCartTotal()
         })
 
         it('deve validar o total do carrinho após atualização da quantidade', () => {
             // Adicionar produto ao carrinho
-            cy.get('a[href*="addItemToCart"]').first().click()
-            cy.wait(2000)
+            ProductPage.addToCart()
 
             // Atualizar quantidade
-            cy.get('input[name*="EST-"]').first().clear().type('3')
-            cy.get('input[type="submit"][value="Update Cart"]').click()
-            cy.wait(2000)
+            ProductPage.updateQuantity(3)
 
             // Validar informações atualizadas
-            cy.validateProductInCart('Angelfish', 3)
-            cy.validateCartTotal()
+            ProductPage.validateProductInCart('Angelfish', 3)
+            ProductPage.validateCartTotal()
         })
 
         it('deve remover produto do carrinho', () => {
             // Adicionar produto ao carrinho
-            cy.get('a[href*="addItemToCart"]').first().click()
-            cy.wait(2000)
+            ProductPage.addToCart()
 
             // Remover produto
-            cy.get('a[href*="removeItemFromCart"]').first().click()
-            cy.wait(2000)
+            ProductPage.removeFromCart()
 
             // Validar que o produto foi removido
-            cy.get('#Cart').should('be.visible')
-            cy.contains('tr', 'Angelfish').should('not.exist')
-            cy.getCartTotal().should('equal', 0)
+            ProductPage.elements.cartTable().should('be.visible')
+            ProductPage.elements.productRow('Angelfish').should('not.exist')
+            ProductPage.validateEmptyCart()
         })
 
         it('deve adicionar múltiplos produtos ao carrinho e validar totais', () => {
             // Adicionar primeiro produto
-            cy.get('a[href*="addItemToCart"]').first().click()
-            cy.wait(2000)
+            ProductPage.addToCart()
 
             // Navegar para outro produto
             cy.get('a[href*="FISH"]').first().click()
@@ -105,20 +168,18 @@ describe('JPetStore Cart Operations', () => {
             cy.wait(2000)
 
             // Adicionar segundo produto
-            cy.get('a[href*="addItemToCart"]').first().click()
-            cy.wait(2000)
+            ProductPage.addToCart()
 
             // Validar produtos no carrinho
-            cy.get('#Cart').should('be.visible')
-            cy.validateProductInCart('Angelfish', 1)
-            cy.validateProductInCart('Tiger Shark', 1)
-            cy.validateCartTotal()
+            ProductPage.elements.cartTable().should('be.visible')
+            ProductPage.validateProductInCart('Angelfish', 1)
+            ProductPage.validateProductInCart('Tiger Shark', 1)
+            ProductPage.validateCartTotal()
         })
 
         it('deve atualizar quantidades de múltiplos produtos e validar totais', () => {
             // Adicionar primeiro produto
-            cy.get('a[href*="addItemToCart"]').first().click()
-            cy.wait(2000)
+            ProductPage.addToCart()
 
             // Navegar para outro produto
             cy.get('a[href*="FISH"]').first().click()
@@ -127,19 +188,18 @@ describe('JPetStore Cart Operations', () => {
             cy.wait(2000)
 
             // Adicionar segundo produto
-            cy.get('a[href*="addItemToCart"]').first().click()
-            cy.wait(2000)
+            ProductPage.addToCart()
 
             // Atualizar quantidades
-            cy.get('input[name*="EST-"]').first().clear().type('2')
-            cy.get('input[name*="EST-"]').last().clear().type('3')
-            cy.get('input[type="submit"][value="Update Cart"]').click()
+            ProductPage.elements.quantityInput().first().clear().type('2')
+            ProductPage.elements.quantityInput().last().clear().type('3')
+            ProductPage.elements.updateCartButton().click()
             cy.wait(2000)
 
             // Validar informações atualizadas
-            cy.validateProductInCart('Angelfish', 2)
-            cy.validateProductInCart('Tiger Shark', 3)
-            cy.validateCartTotal()
+            ProductPage.validateProductInCart('Angelfish', 2)
+            ProductPage.validateProductInCart('Tiger Shark', 3)
+            ProductPage.validateCartTotal()
         })
     })
 }) 

@@ -82,30 +82,19 @@ Cypress.Commands.add('validateProductInCart', (productName, expectedQuantity) =>
     cy.contains('tr', productName).should('be.visible')
     
     // Verificar a quantidade
-    cy.getProductQuantity(productName).should('equal', expectedQuantity)
+    cy.contains('tr', productName).within(() => {
+        cy.get('input[name*="EST-"]').should('have.value', expectedQuantity.toString())
+    })
     
     // Verificar se o subtotal está correto
-    cy.getProductPrice(productName).then(price => {
-        const expectedSubtotal = price * expectedQuantity
-        cy.getProductSubtotal(productName).should('equal', expectedSubtotal)
-    })
-})
-
-Cypress.Commands.add('validateCartTotal', () => {
-    let calculatedTotal = 0
-    
-    // Para cada produto no carrinho
-    cy.get('table[border="1"] tr').each(($row) => {
-        const productName = $row.find('td').eq(0).text().trim()
-        if (productName && productName !== 'Sub Total:') {
-            cy.getProductQuantity(productName).then(quantity => {
-                cy.getProductPrice(productName).then(price => {
-                    calculatedTotal += price * quantity
-                })
+    cy.contains('tr', productName).within(() => {
+        cy.get('td').eq(3).invoke('text').then(text => {
+            const price = parseFloat(text.replace('$', '').trim())
+            const expectedSubtotal = price * expectedQuantity
+            cy.get('td').eq(4).invoke('text').then(text => {
+                const subtotal = parseFloat(text.replace('$', '').trim())
+                expect(subtotal).to.equal(expectedSubtotal)
             })
-        }
-    }).then(() => {
-        // Validar o total do carrinho
-        cy.getCartTotal().should('equal', calculatedTotal)
+        })
     })
 }) 
